@@ -707,4 +707,644 @@ window.resetAll = resetAll;
 renderAll();
 </script>
 </body>
+</html>      display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--panel2);
+      padding:6px 10px;border-radius:999px;font-size:.84rem;color:var(--text)
+    }
+    .pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.8rem;font-weight:700}
+    .good{background:rgba(47,158,103,.18);color:#7ef0bb}
+    .warn{background:rgba(217,119,6,.18);color:#fbbf24}
+    .bad{background:rgba(220,38,38,.18);color:#fca5a5}
+    .neutral{background:rgba(37,99,235,.16);color:#93c5fd}
+    button,.btn{
+      appearance:none;border:none;background:var(--accent);color:#111;font-weight:800;
+      padding:10px 12px;border-radius:12px;cursor:pointer
+    }
+    .btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line)}
+    .btn.small{padding:7px 9px;font-size:.84rem}
+    label{display:block;font-size:.88rem;color:var(--muted);margin:0 0 6px}
+    input,select,textarea{
+      width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);
+      border-radius:12px;padding:11px 12px;font-size:.95rem
+    }
+    textarea{min-height:90px;resize:vertical}
+    .form-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .fg-12{grid-column:span 12}.fg-8{grid-column:span 8}.fg-6{grid-column:span 6}.fg-4{grid-column:span 4}.fg-3{grid-column:span 3}.fg-2{grid-column:span 2}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;background:var(--panel2);border-radius:12px;overflow:hidden}
+    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:.92rem}
+    th{background:#202938}
+    tr:last-child td{border-bottom:none}
+    .tabs{
+      position:fixed;bottom:0;left:0;right:0;z-index:60;background:rgba(13,17,23,.96);
+      backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+      display:flex;gap:6px;overflow:auto
+    }
+    .tab{
+      flex:1 0 auto;min-width:96px;padding:10px 12px;border-radius:12px;background:var(--panel);
+      border:1px solid var(--line);color:var(--muted);font-weight:800;font-size:.84rem;text-align:center;cursor:pointer
+    }
+    .tab.active{color:var(--text);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+    .view{display:none}.view.active{display:block}
+    ul.tight{margin:8px 0 0 18px;padding:0}.tight li{margin:6px 0}
+    .helper{font-size:.84rem;color:var(--muted);margin-top:6px}
+    .danger{color:#fca5a5}
+    .success{color:#7ef0bb}
+    .segment{display:flex;gap:8px;flex-wrap:wrap}
+    .segment button{
+      background:transparent;color:var(--text);border:1px solid var(--line);padding:8px 10px;border-radius:999px;font-weight:700
+    }
+    .segment button.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+    .mini{font-size:.8rem}
+    svg{display:block;width:100%;height:auto}
+    .focus-box{
+      border:1px solid rgba(200,167,106,.25);
+      background:linear-gradient(180deg,rgba(200,167,106,.08),rgba(200,167,106,.02));
+      border-radius:16px;padding:14px
+    }
+    @media (max-width: 860px){
+      .span-9,.span-8,.span-7,.span-6,.span-5,.span-4,.span-3{grid-column:span 12}
+      .fg-8,.fg-6,.fg-4,.fg-3,.fg-2{grid-column:span 12}
+      .metric{font-size:1.7rem}
+      .hero{flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="hero">
+      <div>
+        <div class="title">Cigar OS Elite</div>
+        <div class="subtitle">A refinement-first cigar operating system built around evolving benchmarks, session logging, price discipline, and eliminating anything clearly below your best alternatives.</div>
+      </div>
+      <div class="badge">Davidoff-centered • Dynamic benchmark</div>
+    </div>
+  </header>
+  <div class="content">
+    <section id="dashboard" class="view active"></section>
+    <section id="library" class="view"></section>
+    <section id="sessions" class="view"></section>
+    <section id="tracker" class="view"></section>
+    <section id="shop" class="view"></section>
+    <section id="settings" class="view"></section>
+  </div>
+</div>
+<nav class="tabs" id="tabs"></nav>
+
+<script>
+const STORAGE_KEY = "cigar_os_elite_brand_v1";
+
+const seed = {
+  cigars: [
+    {name:"Davidoff Colorado Claro", tier:"A", role:"Calibration benchmark", targetStick:28, targetBox:"Small qty only", status:"Benchmark", active:true, notes:"Balanced cedar/nut refinement"},
+    {name:"Davidoff Millennium", tier:"A", role:"Richer benchmark", targetStick:32, targetBox:"Small qty only", status:"Benchmark", active:true, notes:"Richer cocoa/coffee calibration"},
+    {name:"Davidoff Late Hour", tier:"A", role:"Deeper benchmark", targetStick:34, targetBox:"Small qty only", status:"Benchmark", active:true, notes:"Darker but still controlled"},
+    {name:"Arturo Fuente Don Carlos", tier:"B", role:"Proven non-Davidoff benchmark", targetStick:20, targetBox:"$450–550", status:"Proven", active:true, notes:"Loved; current core alternative"},
+    {name:"Warped La Colmena", tier:"B?", role:"Refined challenger", targetStick:16, targetBox:"$280–360", status:"Testing", active:true, notes:"High-priority elegance test"},
+    {name:"Fuente Rosado Sungrown Magnum R", tier:"B?", role:"Fuente-adjacent challenger", targetStick:15, targetBox:"$250–400", status:"Testing", active:true, notes:"Likely fit"},
+    {name:"Illusione Epernay", tier:"C", role:"Elegant exploratory", targetStick:14, targetBox:"Singles only", status:"Explore", active:true, notes:"Elegant but must prove value"},
+    {name:"Crowned Heads Mil Días", tier:"C", role:"Controlled exploratory", targetStick:14, targetBox:"Singles only", status:"Explore", active:true, notes:"Modern but may fit"},
+    {name:"Aging Room Quattro Nicaragua", tier:"C", role:"Conditional exploratory", targetStick:12, targetBox:"Singles only", status:"Explore", active:true, notes:"Only if clean"},
+    {name:"Davidoff Nicaragua", tier:"C", role:"Bridge option", targetStick:20, targetBox:"Singles only", status:"Explore", active:true, notes:"Bridge from Davidoff"},
+    {name:"Oliva Serie V Melanio", tier:"Eliminate", role:"Rejected", targetStick:14, targetBox:"N/A", status:"Rejected", active:false, notes:"Oily/chemical miss"}
+  ],
+  askList: [
+    "Fuente Rosado Sungrown",
+    "Warped La Colmena",
+    "Don Carlos (other vitolas)",
+    "Illusione Epernay",
+    "Crowned Heads Mil Días",
+    "Aging Room Quattro Nicaragua",
+    "Davidoff Nicaragua",
+    "What else do you have that is medium to medium-plus, refined, clean finish, not oily, similar to Davidoff / Don Carlos?"
+  ],
+  sessions: [],
+  preferences: {
+    benchmarkMode: "dynamic",
+    qualityFloor: "Eliminate anything worse than best Tier B",
+    shopMode: "Ask for target cigars and similar refined recommendations",
+    profile: "Refinement-first, clean finish, medium to medium-plus, cedar/nut/cocoa, dislikes oily/chemical/dense/syrupy"
+  },
+  ui: {
+    libraryTierFilter: "All",
+    trackerDecisionFilter: "All",
+    search: ""
+  }
+};
+
+function clone(x){ return JSON.parse(JSON.stringify(x)); }
+function load(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return clone(seed);
+  try{ return Object.assign(clone(seed), JSON.parse(raw)); } catch(e){ return clone(seed); }
+}
+let app = load();
+
+const views = [
+  {id:"dashboard", label:"Home"},
+  {id:"library", label:"Library"},
+  {id:"sessions", label:"Sessions"},
+  {id:"tracker", label:"Tracker"},
+  {id:"shop", label:"Shop"},
+  {id:"settings", label:"Settings"}
+];
+
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(app)); renderAll(); }
+function money(v){ return (v === "" || v === null || v === undefined || Number.isNaN(Number(v))) ? "" : "$" + Number(v).toFixed(2); }
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function renderTabs(){
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = views.map((v,i)=>`<div class="tab ${i===0?'active':''}" data-view="${v.id}">${v.label}</div>`).join("");
+  tabs.querySelectorAll(".tab").forEach(tab=>{
+    tab.onclick=()=>{
+      document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+      tab.classList.add("active");
+      document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+      document.getElementById(tab.dataset.view).classList.add("active");
+    };
+  });
+}
+
+function cigarNames(){ return app.cigars.map(c=>c.name).sort(); }
+
+function entryDecision(e){
+  if(e.clean !== "Yes") return "Eliminate";
+  if(e.compareTierB === "Worse") return "Eliminate";
+  if(e.compareTierB === "Better") return "Promote";
+  if(e.compareTierB === "Equal"){
+    if(Number(e.score||0) >= 8.5) return "Buy 3";
+    if(Number(e.score||0) >= 7.5) return "Retest";
+    return "Eliminate";
+  }
+  return "Pending";
+}
+
+function decisionPill(d){
+  if(d === "Promote" || d === "Promote to Tier B") return `<span class="pill good">${d}</span>`;
+  if(d === "Buy 3" || d === "Retest" || d === "Hold / Retest") return `<span class="pill warn">${d}</span>`;
+  if(d === "Eliminate") return `<span class="pill bad">${d}</span>`;
+  return `<span class="pill neutral">${d}</span>`;
+}
+
+function priceTier(price){
+  const p = Number(price||0);
+  if(!p) return 0;
+  if(p <= 14) return 1;
+  if(p <= 18) return 1.35;
+  if(p <= 22) return 1.7;
+  if(p <= 28) return 2.2;
+  return 2.8;
+}
+
+function roi(score, price){
+  const s = Number(score||0), pt = priceTier(price);
+  if(!s || !pt) return 0;
+  return s/pt;
+}
+
+function flattenEntries(){
+  const all = [];
+  app.sessions.forEach((s, si)=>{
+    if(s.first && s.first.cigar) all.push({...s.first, sessionDate:s.date, benchmarkUsed:s.benchmarkUsed, slot:"First", sessionIndex:si});
+    if(s.second && s.second.cigar) all.push({...s.second, sessionDate:s.date, benchmarkUsed:s.benchmarkUsed, slot:"Second", sessionIndex:si});
+  });
+  return all;
+}
+
+function groupedEntries(){
+  const map = {};
+  flattenEntries().forEach(e=>{
+    if(!map[e.cigar]) map[e.cigar] = [];
+    map[e.cigar].push(e);
+  });
+  return Object.entries(map).map(([name, entries])=>{
+    const avgScore = entries.reduce((a,b)=>a+Number(b.score||0),0)/entries.length;
+    const cleanRate = Math.round(entries.filter(e=>e.clean==="Yes").length/entries.length*100);
+    const firstCount = entries.filter(e=>e.slot==="First").length;
+    const secondCount = entries.filter(e=>e.slot==="Second").length;
+    const better = entries.filter(e=>e.compareTierB==="Better").length;
+    const equal = entries.filter(e=>e.compareTierB==="Equal").length;
+    const worse = entries.filter(e=>e.compareTierB==="Worse").length;
+    const roiVals = entries.map(e=>roi(e.score, e.price)).filter(v=>v>0);
+    const avgROI = roiVals.length ? roiVals.reduce((a,b)=>a+b,0)/roiVals.length : 0;
+    let decision = "Hold / Retest";
+    if(entries.some(e=>entryDecision(e)==="Promote") && worse===0 && cleanRate>=80) decision = "Promote to Tier B";
+    else if(worse>0 || cleanRate<60) decision = "Eliminate";
+    else if(avgScore >= 8.5) decision = "Buy 3";
+    const slotFit = secondCount > firstCount ? "Better as second" : firstCount > secondCount ? "Better as first" : "Either";
+    return {name,count:entries.length,avgScore,cleanRate,firstCount,secondCount,better,equal,worse,avgROI,decision,slotFit};
+  }).sort((a,b)=>{
+    const order = {"Promote to Tier B":0,"Buy 3":1,"Hold / Retest":2,"Eliminate":3};
+    return (order[a.decision]-order[b.decision]) || (b.avgScore-a.avgScore);
+  });
+}
+
+function metrics(){
+  const entries = flattenEntries(), groups = groupedEntries();
+  return {
+    sessions: app.sessions.length,
+    entries: entries.length,
+    avgScore: entries.length ? (entries.reduce((a,b)=>a+Number(b.score||0),0)/entries.length).toFixed(2) : "0.00",
+    cleanRate: entries.length ? Math.round(entries.filter(e=>e.clean==="Yes").length/entries.length*100) : 0,
+    promotions: groups.filter(g=>g.decision==="Promote to Tier B").length,
+    eliminations: groups.filter(g=>g.decision==="Eliminate").length
+  };
+}
+
+function autoSuggestions(){
+  const groups = groupedEntries();
+  return {
+    promote: groups.filter(g=>g.decision==="Promote to Tier B").map(g=>g.name),
+    buy3: groups.filter(g=>g.decision==="Buy 3").map(g=>g.name),
+    eliminate: groups.filter(g=>g.decision==="Eliminate").map(g=>g.name)
+  };
+}
+
+function homeChart(){
+  const items = flattenEntries().slice(-12);
+  if(!items.length) return `<div class="muted mini">Log sessions to see trend.</div>`;
+  const w=360,h=180,p=24,max=10,min=0;
+  const step = items.length>1 ? (w-p*2)/(items.length-1) : 0;
+  const pts = items.map((x,i)=>[p + step*i, h-p - ((Number(x.score||0)-min)/(max-min))*(h-p*2)]);
+  const poly = pts.map(p=>p.join(",")).join(" ");
+  const dots = pts.map((pt,i)=>`<circle cx="${pt[0]}" cy="${pt[1]}" r="4" fill="${items[i].slot==='First' ? '#93c5fd' : '#c8a76a'}"><title>${items[i].cigar} (${items[i].slot}) ${items[i].score}</title></circle>`).join("");
+  const grid = [0,5,10].map(v=>{
+    const y = h-p - ((v-min)/(max-min))*(h-p*2);
+    return `<line x1="${p}" y1="${y}" x2="${w-p}" y2="${y}" stroke="rgba(255,255,255,.08)" /><text x="6" y="${y+4}" fill="var(--muted)" font-size="11">${v}</text>`;
+  }).join("");
+  return `<div style="background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px"><svg viewBox="0 0 ${w} ${h}">${grid}<polyline fill="none" stroke="var(--accent)" stroke-width="3" points="${poly}" />${dots}</svg><div class="helper">Blue = first cigar. Gold = second cigar.</div></div>`;
+}
+
+function renderDashboard(){
+  const m = metrics(), sug = autoSuggestions();
+  document.getElementById("dashboard").innerHTML = `
+    <div class="grid">
+      <div class="card span-8">
+        <div class="focus-box">
+          <h2>Operating thesis</h2>
+          <div class="muted">Use Davidoff as the initial reference. Promote only those cigars that are clean, refined, and better than current Tier B. Eliminate anything clearly worse, even if cheaper.</div>
+          <div class="toolbar" style="margin-top:12px">
+            <span class="chip">${esc(app.preferences.benchmarkMode)}</span>
+            <span class="chip">${esc(app.preferences.qualityFloor)}</span>
+            <span class="chip">${esc(app.preferences.shopMode)}</span>
+          </div>
+        </div>
+      </div>
+      <div class="card span-4">
+        <h2>Profile</h2>
+        <div class="muted">${esc(app.preferences.profile)}</div>
+      </div>
+
+      <div class="card span-3"><div class="muted">Sessions</div><div class="metric">${m.sessions}</div></div>
+      <div class="card span-3"><div class="muted">Logged cigars</div><div class="metric">${m.entries}</div></div>
+      <div class="card span-3"><div class="muted">Average score</div><div class="metric">${m.avgScore}</div></div>
+      <div class="card span-3"><div class="muted">Clean finish rate</div><div class="metric">${m.cleanRate}%</div></div>
+
+      <div class="card span-6">
+        <h2>Promotion signals</h2>
+        ${sug.promote.length ? `<ul class="tight">${sug.promote.map(x=>`<li class="success">${esc(x)} → promote to Tier B</li>`).join("")}</ul>` : `<div class="muted">No promotion signals yet.</div>`}
+        ${sug.buy3.length ? `<div style="margin-top:10px"><strong>Buy 3 more</strong><ul class="tight">${sug.buy3.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>` : ``}
+      </div>
+      <div class="card span-6">
+        <h2>Elimination signals</h2>
+        ${sug.eliminate.length ? `<ul class="tight">${sug.eliminate.map(x=>`<li class="danger">${esc(x)} → eliminate</li>`).join("")}</ul>` : `<div class="muted">No elimination signals yet.</div>`}
+      </div>
+
+      <div class="card span-7">
+        <h2>Top candidates</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Cigar</th><th>Avg score</th><th>Clean</th><th>Slot fit</th><th>Decision</th></tr></thead>
+            <tbody>
+              ${groupedEntries().slice(0,6).map(g=>`<tr><td>${esc(g.name)}</td><td>${g.avgScore.toFixed(2)}</td><td>${g.cleanRate}%</td><td>${esc(g.slotFit)}</td><td>${decisionPill(g.decision)}</td></tr>`).join("") || `<tr><td colspan="5" class="muted">No data yet.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card span-5"><h2>Trend</h2>${homeChart()}</div>
+    </div>
+  `;
+}
+
+let editIndex = null;
+
+function showAddCigar(){ editIndex = null; renderLibraryEditor(); document.getElementById("libraryEditor").scrollIntoView({behavior:"smooth"}); }
+function editCigar(idx){ editIndex = idx; renderLibraryEditor(); document.getElementById("libraryEditor").scrollIntoView({behavior:"smooth"}); }
+function deleteCigar(idx){ if(confirm("Delete this cigar?")){ app.cigars.splice(idx,1); editIndex = null; save(); } }
+
+function saveLibraryCigar(){
+  const obj = {
+    name: document.getElementById("lc_name").value.trim(),
+    tier: document.getElementById("lc_tier").value,
+    role: document.getElementById("lc_role").value.trim(),
+    targetStick: document.getElementById("lc_targetStick").value,
+    targetBox: document.getElementById("lc_targetBox").value.trim(),
+    status: document.getElementById("lc_status").value.trim(),
+    active: document.getElementById("lc_active").value === "true",
+    notes: document.getElementById("lc_notes").value.trim()
+  };
+  if(!obj.name){ alert("Enter a cigar name."); return; }
+  if(editIndex===null) app.cigars.push(obj); else app.cigars[editIndex] = obj;
+  editIndex = null; save();
+}
+
+function setLibraryTierFilter(v){ app.ui.libraryTierFilter = v; save(); }
+function setSearch(v){ app.ui.search = v; save(); }
+
+function renderLibraryEditor(){
+  const c = editIndex===null ? {name:"",tier:"C",role:"",targetStick:"",targetBox:"Singles only",status:"Explore",active:true,notes:""} : app.cigars[editIndex];
+  document.getElementById("libraryEditor").innerHTML = `
+    <h2>${editIndex===null ? "Add cigar" : "Edit cigar"}</h2>
+    <div class="form-grid">
+      <div class="fg-6"><label>Name</label><input id="lc_name" value="${esc(c.name)}"></div>
+      <div class="fg-2"><label>Tier</label><select id="lc_tier">${["A","B","B?","C","Archive","Eliminate"].map(x=>`<option ${c.tier===x?'selected':''}>${x}</option>`).join("")}</select></div>
+      <div class="fg-4"><label>Status</label><input id="lc_status" value="${esc(c.status)}"></div>
+      <div class="fg-6"><label>Role</label><input id="lc_role" value="${esc(c.role)}"></div>
+      <div class="fg-3"><label>Target / stick</label><input id="lc_targetStick" type="number" step="0.01" value="${c.targetStick}"></div>
+      <div class="fg-3"><label>Target box</label><input id="lc_targetBox" value="${esc(c.targetBox)}"></div>
+      <div class="fg-3"><label>Active</label><select id="lc_active"><option value="true" ${c.active?'selected':''}>Yes</option><option value="false" ${!c.active?'selected':''}>No</option></select></div>
+      <div class="fg-12"><label>Notes</label><textarea id="lc_notes">${esc(c.notes)}</textarea></div>
+    </div>
+    <div class="toolbar" style="margin-top:12px">
+      <button class="btn" onclick="saveLibraryCigar()">${editIndex===null ? "Add cigar" : "Save changes"}</button>
+      ${editIndex!==null ? `<button class="btn secondary" onclick="deleteCigar(${editIndex})">Delete</button>` : ``}
+    </div>
+  `;
+}
+
+function renderLibrary(){
+  const tier = app.ui.libraryTierFilter || "All";
+  const search = (app.ui.search || "").toLowerCase();
+  const filtered = app.cigars.filter(c=>{
+    const tierOk = tier==="All" || c.tier===tier;
+    const searchOk = !search || [c.name,c.role,c.status,c.notes,c.tier].join(" ").toLowerCase().includes(search);
+    return tierOk && searchOk;
+  });
+  document.getElementById("library").innerHTML = `
+    <div class="grid">
+      <div class="card span-12">
+        <div class="toolbar" style="justify-content:space-between">
+          <div><h2 style="margin:0">Library</h2><div class="muted">Search, filter, and edit your cigar universe.</div></div>
+          <button class="btn" onclick="showAddCigar()">Add cigar</button>
+        </div>
+        <div class="form-grid" style="margin-top:12px">
+          <div class="fg-6"><label>Search</label><input value="${esc(app.ui.search || "")}" oninput="setSearch(this.value)" placeholder="Search by cigar, notes, role, status"></div>
+          <div class="fg-6"><label>Tier filter</label><div class="segment">${["All","A","B","B?","C","Archive","Eliminate"].map(x=>`<button class="${tier===x?'active':''}" onclick="setLibraryTierFilter('${x.replace(/'/g,"\\'")}')">${x}</button>`).join("")}</div></div>
+        </div>
+        <div class="table-wrap" style="margin-top:12px">
+          <table>
+            <thead><tr><th>Cigar</th><th>Tier</th><th>Role</th><th>Target / stick</th><th>Target box</th><th>Status</th><th>Notes</th><th></th></tr></thead>
+            <tbody>
+              ${filtered.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.tier)}</td><td>${esc(c.role)}</td><td>${money(c.targetStick)}</td><td>${esc(c.targetBox)}</td><td>${esc(c.status)}</td><td>${esc(c.notes)}</td><td><button class="btn secondary small" onclick="editCigar(${app.cigars.indexOf(c)})">Edit</button></td></tr>`).join("") || `<tr><td colspan="8" class="muted">No cigars match this filter.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card span-12" id="libraryEditor"></div>
+    </div>
+  `;
+  renderLibraryEditor();
+}
+
+function addSession(){
+  const session = {
+    date: document.getElementById("ss_date").value,
+    benchmarkUsed: document.getElementById("ss_benchmark").value,
+    sessionNotes: document.getElementById("ss_sessionNotes").value.trim(),
+    first: {
+      cigar: document.getElementById("f_cigar").value.trim(),
+      price: document.getElementById("f_price").value,
+      score: document.getElementById("f_score").value,
+      clean: document.getElementById("f_clean").value,
+      compareTierB: document.getElementById("f_compare").value,
+      replaceDC: document.getElementById("f_replaceDC").value,
+      notes: document.getElementById("f_notes").value.trim()
+    },
+    second: {
+      cigar: document.getElementById("s_cigar").value.trim(),
+      price: document.getElementById("s_price").value,
+      score: document.getElementById("s_score").value,
+      clean: document.getElementById("s_clean").value,
+      compareTierB: document.getElementById("s_compare").value,
+      replaceDC: document.getElementById("s_replaceDC").value,
+      notes: document.getElementById("s_notes").value.trim()
+    }
+  };
+  if(!session.first.cigar && !session.second.cigar){ alert("Enter at least one cigar."); return; }
+  [session.first, session.second].forEach(entry=>{
+    if(entry.cigar && !app.cigars.some(c=>c.name===entry.cigar)){
+      app.cigars.push({name:entry.cigar,tier:"C",role:"New exploratory",targetStick:"",targetBox:"Singles only",status:"Explore",active:true,notes:"Added from session"});
+    }
+  });
+  app.sessions.push(session); save();
+}
+
+function deleteSession(idx){ if(confirm("Delete this session?")){ app.sessions.splice(idx,1); save(); } }
+
+function renderSessions(){
+  const names = cigarNames();
+  const recent = app.sessions.slice().reverse().slice(0,10);
+  document.getElementById("sessions").innerHTML = `
+    <div class="grid">
+      <div class="card span-12">
+        <h2>Log a full session</h2>
+        <div class="form-grid">
+          <div class="fg-3"><label>Date</label><input id="ss_date" type="date"></div>
+          <div class="fg-4"><label>Benchmark used</label><input id="ss_benchmark" list="cigarListSession" placeholder="Davidoff Colorado Claro"><datalist id="cigarListSession">${names.map(n=>`<option value="${esc(n)}">`).join("")}</datalist></div>
+          <div class="fg-5"><label>Session notes</label><input id="ss_sessionNotes" placeholder="Mood, timing, drink pairing"></div>
+
+          <div class="fg-12"><h3 style="margin-top:8px">First cigar</h3></div>
+          <div class="fg-4"><label>Cigar</label><input id="f_cigar" list="cigarList" placeholder="Start typing cigar"><datalist id="cigarList">${names.map(n=>`<option value="${esc(n)}">`).join("")}</datalist></div>
+          <div class="fg-2"><label>Price</label><input id="f_price" type="number" step="0.01"></div>
+          <div class="fg-2"><label>Score</label><input id="f_score" type="number" min="1" max="10" step="0.5"></div>
+          <div class="fg-2"><label>Clean?</label><select id="f_clean"><option>Yes</option><option>No</option></select></div>
+          <div class="fg-2"><label>Tier B comp</label><select id="f_compare"><option>Better</option><option>Equal</option><option>Worse</option></select></div>
+          <div class="fg-3"><label>Replace DC?</label><select id="f_replaceDC"><option>Yes</option><option>No</option></select></div>
+          <div class="fg-9"><label>Notes</label><input id="f_notes" placeholder="Flavor, finish, construction"></div>
+
+          <div class="fg-12"><h3 style="margin-top:8px">Second cigar</h3></div>
+          <div class="fg-4"><label>Cigar</label><input id="s_cigar" list="cigarList"></div>
+          <div class="fg-2"><label>Price</label><input id="s_price" type="number" step="0.01"></div>
+          <div class="fg-2"><label>Score</label><input id="s_score" type="number" min="1" max="10" step="0.5"></div>
+          <div class="fg-2"><label>Clean?</label><select id="s_clean"><option>Yes</option><option>No</option></select></div>
+          <div class="fg-2"><label>Tier B comp</label><select id="s_compare"><option>Better</option><option>Equal</option><option>Worse</option></select></div>
+          <div class="fg-3"><label>Replace DC?</label><select id="s_replaceDC"><option>Yes</option><option>No</option></select></div>
+          <div class="fg-9"><label>Notes</label><input id="s_notes" placeholder="Flavor, finish, construction"></div>
+        </div>
+        <div class="toolbar" style="margin-top:12px">
+          <button class="btn" onclick="addSession()">Save session</button>
+          <button class="btn secondary" onclick="document.getElementById('ss_date').value=new Date().toISOString().slice(0,10)">Today</button>
+        </div>
+      </div>
+
+      <div class="card span-12">
+        <h2>Recent sessions</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>First cigar</th><th>Score</th><th>Second cigar</th><th>Score</th><th>Benchmark</th><th></th></tr></thead>
+            <tbody>
+              ${recent.map((s,revIdx)=>{
+                const idx = app.sessions.length - 1 - revIdx;
+                return `<tr><td>${esc(s.date||"")}</td><td>${esc(s.first?.cigar||"")}</td><td>${s.first?.score||""}</td><td>${esc(s.second?.cigar||"")}</td><td>${s.second?.score||""}</td><td>${esc(s.benchmarkUsed||"")}</td><td><button class="btn secondary small" onclick="deleteSession(${idx})">Delete</button></td></tr>`;
+              }).join("") || `<tr><td colspan="7" class="muted">No sessions yet.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function setTrackerDecisionFilter(v){ app.ui.trackerDecisionFilter = v; save(); }
+
+function renderTracker(){
+  const filter = app.ui.trackerDecisionFilter || "All";
+  const groups = groupedEntries().filter(g=>filter==="All" || g.decision===filter);
+  document.getElementById("tracker").innerHTML = `
+    <div class="grid">
+      <div class="card span-12">
+        <div class="toolbar" style="justify-content:space-between">
+          <div><h2 style="margin:0">Tracker</h2><div class="muted">Promotion is strict. Worse than Tier B means eliminate.</div></div>
+          <div class="segment">${["All","Promote to Tier B","Buy 3","Hold / Retest","Eliminate"].map(x=>`<button class="${filter===x?'active':''}" onclick="setTrackerDecisionFilter('${x.replace(/'/g,"\\'")}')">${x}</button>`).join("")}</div>
+        </div>
+        <div class="table-wrap" style="margin-top:12px">
+          <table>
+            <thead><tr><th>Cigar</th><th>Entries</th><th>Avg score</th><th>Clean</th><th>1st / 2nd</th><th>Better / Equal / Worse</th><th>Avg ROI</th><th>Slot fit</th><th>Decision</th></tr></thead>
+            <tbody>
+              ${groups.map(g=>`<tr><td>${esc(g.name)}</td><td>${g.count}</td><td>${g.avgScore.toFixed(2)}</td><td>${g.cleanRate}%</td><td>${g.firstCount} / ${g.secondCount}</td><td>${g.better} / ${g.equal} / ${g.worse}</td><td>${g.avgROI ? g.avgROI.toFixed(2) : ""}</td><td>${esc(g.slotFit)}</td><td>${decisionPill(g.decision)}</td></tr>`).join("") || `<tr><td colspan="9" class="muted">No tracked cigars yet.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function addAskItem(){ app.askList.push(""); save(); }
+function updateAskItem(idx,val){ app.askList[idx]=val; save(); }
+function removeAskItem(idx){ app.askList.splice(idx,1); save(); }
+
+function renderShop(){
+  document.getElementById("shop").innerHTML = `
+    <div class="grid">
+      <div class="card span-7">
+        <h2>Shop script</h2>
+        <p>I like Davidoff Colorado Claro, Millennium, Late Hour, and Fuente Don Carlos. I’m looking for medium to medium-full, refined, clean-finish cigars — not oily, dense, or heavy.</p>
+        <p><strong>Also:</strong> Show me these specific cigars and anything similar in that lane.</p>
+      </div>
+      <div class="card span-5">
+        <h2>Immediate rejects</h2>
+        <ul class="tight">
+          <li>Full-bodied Nicaraguan powerhouse</li>
+          <li>Pepper bomb</li>
+          <li>Heavy Maduro</li>
+          <li>Sweet / syrupy / oily</li>
+        </ul>
+      </div>
+      <div class="card span-12">
+        <div class="toolbar" style="justify-content:space-between">
+          <div><h2 style="margin:0">Ask-for list</h2><div class="muted">Editable humidor checklist.</div></div>
+          <button class="btn" onclick="addAskItem()">Add line</button>
+        </div>
+        <div style="margin-top:12px">
+          ${app.askList.map((item,idx)=>`<div class="toolbar" style="margin-bottom:8px"><input value="${esc(item)}" onchange="updateAskItem(${idx}, this.value)"><button class="btn secondary small" onclick="removeAskItem(${idx})">Delete</button></div>`).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function saveSettings(){
+  app.preferences.benchmarkMode = document.getElementById("st_benchmarkMode").value.trim();
+  app.preferences.qualityFloor = document.getElementById("st_qualityFloor").value.trim();
+  app.preferences.shopMode = document.getElementById("st_shopMode").value.trim();
+  app.preferences.profile = document.getElementById("st_profile").value.trim();
+  save();
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(app, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cigar-os-elite-data.json";
+  a.click();
+}
+
+function resetAll(){
+  if(confirm("Reset all app data?")){
+    localStorage.removeItem(STORAGE_KEY);
+    app = clone(seed);
+    save();
+  }
+}
+
+function renderSettings(){
+  document.getElementById("settings").innerHTML = `
+    <div class="grid">
+      <div class="card span-12">
+        <h2>Preferences</h2>
+        <div class="form-grid">
+          <div class="fg-4"><label>Benchmark mode</label><input id="st_benchmarkMode" value="${esc(app.preferences.benchmarkMode)}"></div>
+          <div class="fg-8"><label>Quality floor</label><input id="st_qualityFloor" value="${esc(app.preferences.qualityFloor)}"></div>
+          <div class="fg-12"><label>Shop mode</label><input id="st_shopMode" value="${esc(app.preferences.shopMode)}"></div>
+          <div class="fg-12"><label>Profile</label><textarea id="st_profile">${esc(app.preferences.profile)}</textarea></div>
+        </div>
+        <div class="toolbar" style="margin-top:12px"><button class="btn" onclick="saveSettings()">Save preferences</button></div>
+      </div>
+      <div class="card span-6">
+        <h2>Export / import</h2>
+        <div class="toolbar">
+          <button class="btn secondary" onclick="exportData()">Export data</button>
+          <label class="btn secondary">Import data<input type="file" id="importFile" accept=".json" style="display:none"></label>
+        </div>
+        <div class="helper">Data stays in this browser unless you export it.</div>
+      </div>
+      <div class="card span-6">
+        <h2>Reset</h2>
+        <button class="btn secondary" onclick="resetAll()">Reset app data</button>
+        <div class="helper danger">This clears your sessions, edits, and tracker data on this device.</div>
+      </div>
+    </div>
+  `;
+  document.getElementById("importFile").onchange = (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{ app = JSON.parse(reader.result); save(); } catch(err){ alert("Import failed."); }
+    };
+    reader.readAsText(file);
+  };
+}
+
+function renderAll(){
+  renderTabs();
+  renderDashboard();
+  renderLibrary();
+  renderSessions();
+  renderTracker();
+  renderShop();
+  renderSettings();
+}
+
+window.showAddCigar = showAddCigar;
+window.editCigar = editCigar;
+window.deleteCigar = deleteCigar;
+window.saveLibraryCigar = saveLibraryCigar;
+window.setLibraryTierFilter = setLibraryTierFilter;
+window.setSearch = setSearch;
+window.addSession = addSession;
+window.deleteSession = deleteSession;
+window.setTrackerDecisionFilter = setTrackerDecisionFilter;
+window.addAskItem = addAskItem;
+window.updateAskItem = updateAskItem;
+window.removeAskItem = removeAskItem;
+window.saveSettings = saveSettings;
+window.exportData = exportData;
+window.resetAll = resetAll;
+
+renderAll();
+</script>
+</body>
 </html>
